@@ -1,6 +1,6 @@
 import torchaudio
 from speechbrain.pretrained import EncoderClassifier
-
+# create the embeddings of the audio (that is not divided in chunks)
 classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb")
 signal, fs = torchaudio.load('no_silence_audio_test.wav')
 

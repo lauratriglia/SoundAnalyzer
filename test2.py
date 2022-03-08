@@ -6,6 +6,9 @@ from pydub.utils import make_chunks
 import torchaudio
 from speechbrain.pretrained import EncoderClassifier
 
+# make_chunk-> the audio file is divided in chunk of 1 sec, and from each chunk an
+# embedding of the chunk is created.
+
 
 def make_chunk(file_name):
     classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb")
