@@ -1,7 +1,7 @@
 import librosa
 import soundfile as sf
 
-audio_file = r'voiceRecognition/audio_test.wav'
+audio_file = r'voiceRecognition/filtered1.wav'
 # read wav data
 audio, sr = librosa.load(audio_file, sr=8000, mono=True)
 print(audio.shape, sr) #(837632,) 8000 -> this wav file contains 837632 length data
@@ -17,4 +17,4 @@ for c in clips:
     data=audio[c[0]: c[1]]
     wav_data.extend(data)
 
-sf.write('2.wav', wav_data, sr)
+sf.write('silence_filtered.wav', wav_data, sr)
