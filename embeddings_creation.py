@@ -36,14 +36,19 @@ def make_chunk(audio_file):
             # write a row to the csv file
             writer.writerow(emb)
 
-main_dir = '20220110-143437'
+
+main_dir = 'Database preproc'
 all_file_names = os.listdir(main_dir)
 print(all_file_names)
 
+
 for subdir in all_file_names:
-    if os.path.isdir(main_dir+'/'+subdir):
-        files = os.listdir(main_dir+'/'+subdir)
-        for file in files:
-            if('.wav' in file):
-                make_chunk(main_dir+'/'+subdir+'/'+file)
+    if os.path.isdir(main_dir + '/' + subdir):
+        dir_names = os.listdir(main_dir + '/' + subdir)
+    for subdir1 in dir_names:
+        if os.path.isdir(main_dir+'/'+subdir+'/'+subdir1):
+            files = os.listdir(main_dir+'/'+subdir+'/'+subdir1)
+            for file in files:
+                if('.wav' in file):
+                    make_chunk(main_dir+'/'+subdir+'/'+subdir1+'/'+file)
 
