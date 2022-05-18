@@ -32,14 +32,14 @@ class EmbeddingsHandler:
             self.mean_embedding[s] = mean
             self.data_dict[s] = list_emb
             self.name_dict[label_id] = s
-            print(self.data_dict)
+            # print(self.data_dict)
 
     def get_distance_from_user(self, emb, identity_to_check):
         max_dist = -1
 
         if identity_to_check in self.data_dict.keys():
             for person_emb in self.data_dict[identity_to_check]:
-                dist = self.similarity_func(person_emb, emb).numpy()
+                dist = self.similarity_func(torch.from_numpy(person_emb), emb).numpy()
                 if dist[0] > max_dist:
                     max_dist = dist[0]
 
@@ -55,6 +55,7 @@ class EmbeddingsHandler:
         for speaker_label, list_emb in self.data_dict.items():
             if speaker_label not in self.excluded_entities:
                 for person_emb in list_emb:
+                    # dist = self.similarity_func(torch.from_numpy(person_emb), torch.from_numpy(np.ndarray(np.int(emb)))).numpy()
                     dist = self.similarity_func(torch.from_numpy(person_emb), emb).numpy()
                     if dist > thr:
                         list_distance.append(dist[0])
