@@ -4,6 +4,16 @@ import os
 
 
 def remove_silence(audio_file, counter):
+    '''
+
+    :param str audio_file: is the location in which the audio file is stored
+    :param int counter: to keep track of the number of iteration
+    :return: nothing
+
+    This function is dedicate to split an audio in intervals in which there's only voice. To do that the librosa
+    library is used, which splits the audio according to a threshold (in decibels) below reference to consider as
+    silence
+    '''
     dir_name = os.path.dirname(audio_file)
     print(dir_name)
     #if '.wav' in dir_name:
