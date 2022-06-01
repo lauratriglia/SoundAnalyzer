@@ -1,34 +1,43 @@
 import librosa
 import soundfile as sf
-
-audio_file = r'samples_audio/audio_test.wav'
-audio_file1 = r'samples_audio/audio_test1.wav'
-audio_file2 = r'samples_audio/audio_test2.wav'
-# read wav data
-audio, sr = librosa.load(audio_file, sr=8000, mono=True)
-audio1, sr = librosa.load(audio_file1, sr=8000, mono=True)
-audio2, sr = librosa.load(audio_file2, sr=8000, mono=True)
-
-# to remove all silence in a wav file it can be used a librosa.effect.split() function
-
-clips = librosa.effects.split(audio, top_db=7)
-clips1 = librosa.effects.split(audio1, top_db=7)
-clips2= librosa.effects.split(audio2, top_db=7)
+import os
 
 
-wav_data=[]
-wav_data1=[]
-wav_data2=[]
-for c in clips:
-    data=audio[c[0]: c[1]]
-    wav_data.extend(data)
-for c in clips1:
-    data = audio[c[0]: c[1]]
-    wav_data1.extend(data)
-for c in clips2:
-    data=audio[c[0]: c[1]]
-    wav_data2.extend(data)
+def remove_silence(audio_file, counter):
+    dir_name = os.path.dirname(audio_file)
+    print(dir_name)
+    #if '.wav' in dir_name:
+        # read wav data
+    audio, sr = librosa.load(audio_file, sr=8000, mono=True)
+    # to remove all silence in a wav file it can be used a librosa.effect.split() function
+    clips = librosa.effects.split(audio, top_db=10)
+    wav_data=[]
+   # for c in clips:
+   #     data=audio[c[0]: c[1]]
+   #     wav_data.extend(data)
+    for i in range(len(clips)-1):
+        start_silence = clips[i][1]
+        end_silence = clips[i+1][0]
+        silence = audio[start_silence: end_silence]
+        wav_data.extend(silence)
 
-sf.write('samples_audio/audio_sample.wav', wav_data, sr)
-sf.write('samples_audio/audio_sample1.wav', wav_data1, sr)
-sf.write('samples_audio/audio_sample2.wav', wav_data2, sr)
+    sf.write('DB_s/Silence_audio' + '/' + "silence{0}.wav".format(counter), wav_data, sr)
+    # counter += 1
+
+
+main_dir = 'DB_raw'
+all_file_names = os.listdir(main_dir)
+counter = 1
+
+for subdir in all_file_names:
+    if os.path.isdir(main_dir + '/' + subdir):
+        dir_names = os.listdir(main_dir + '/' + subdir)
+        print(subdir)
+        files = os.listdir(main_dir + '/' + subdir)
+        for subdir1 in dir_names:
+            if os.path.isdir(main_dir+'/'+subdir+'/'+subdir1):
+                files = os.listdir(main_dir+'/'+subdir+'/'+subdir1)
+                for file in files:
+                     if '.wav' in file:
+                      remove_silence(main_dir+'/'+subdir+'/'+subdir1+'/'+file, counter)
+                      counter += 1
