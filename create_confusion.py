@@ -2,18 +2,12 @@ import os
 import numpy as np
 import random
 import math
-import torch
-import csv
-from pydub import AudioSegment
-from pydub.utils import make_chunks
-import wave
-import librosa
-import torchaudio
-from speechbrain.pretrained import EncoderClassifier
 from speaker_embeddings import EmbeddingsHandler
-from emb_creation1 import predict_speaker
+from prediction import predict_speaker
 import matplotlib
+
 matplotlib.use('TkAgg')
+
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
@@ -32,19 +26,15 @@ def main():
         for subdir1 in dir_names:
             if os.path.isdir(main_dir + '/' + subdir + '/' + subdir1):
                 embs = np.load(main_dir + '/' + subdir + '/' + subdir1 + '/' + 'chunk.npy').squeeze()
-                # print(f"EMB outside: {embs}")
-                # print(embs.shape)
                 if len(embs.shape) > 1:
                     for emb in embs:
                         list_data.append([subdir, emb])
                 else:
                     list_data.append([subdir, embs])
-    #a = np.ndarray(shape=(0,0))
-    #list_data.append(["Silence_audio", a])
-    # print(list_data)
+
     random.shuffle(list_data)
     perc_train = 0.7
-    n_train = math.ceil(0.7 * len(list_data))
+    n_train = math.ceil(perc_train * len(list_data))
     n_test = len(list_data) - n_train
     train_set = list_data[0:n_train]
     test_set = list_data[n_train:]
@@ -59,9 +49,6 @@ def main():
     for data in test_set:
         true_name = data[0]
         emb = data[1]
-        # print(emb)
-        # print(test_set)
-        # print(embs)
         pred_name = predict_speaker(emb, ls)
         list_pred_name.append(pred_name)
         list_true_name.append(true_name)

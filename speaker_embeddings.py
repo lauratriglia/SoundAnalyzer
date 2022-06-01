@@ -1,38 +1,44 @@
 import numpy as np
 import os, glob
 import torch
-from torchvision import datasets, transforms
-from sklearn.neighbors import KNeighborsClassifier
-
 
 class EmbeddingsHandler:
-    def __init__(self, dataset_dir, threshold=0.4, n_neighbors=30):
+    def __init__(self, dataset_dir, threshold=0.4, n_neighbors=30, train_set=None):
         self.root_dir = dataset_dir
         self.mean_embedding = {}
         self.data_dict = {}
         self.name_dict = {}
         self.n_neighbors = n_neighbors
-        self._load_dataset()
+        self._load_dataset(train_set)
         self.threshold = threshold
 
         self.excluded_entities = []
         self.similarity_func = torch.nn.CosineSimilarity(dim=-1, eps=1e-6)
 
-    def _load_dataset(self):
+    def _load_dataset(self, train_set = None):
         """
         Load the set of embeddings define in the root_dir
         :return:
         """
-        speaker_labels = os.listdir(self.root_dir)
-        for label_id, s in enumerate(speaker_labels):
-            emb_filenames = glob.glob(os.path.join(self.root_dir, s+'/*', "*.npy"))
-            list_emb = [np.load(emb_f).squeeze() for emb_f in emb_filenames]
-
-            mean = np.array(list_emb).mean(axis=0)
-            self.mean_embedding[s] = mean
-            self.data_dict[s] = list_emb
-            self.name_dict[label_id] = s
-            # print(self.data_dict)
+        if train_set:
+            for elem in train_set:
+                name = elem[0]
+                emb = elem[1]
+                try:
+                    self.data_dict[name].append(emb)
+                except:
+                    self.data_dict[name] = [emb]
+        else:
+            speaker_labels = os.listdir(self.root_dir)
+            for label_id, s in enumerate(speaker_labels):
+                emb_filenames = glob.glob(os.path.join(self.root_dir, s+'/*', "*.npy"))
+                list_emb = [np.load(emb_f).squeeze() for emb_f in emb_filenames]
+                # print(list_emb)
+                mean = np.array(list_emb).mean(axis=0)
+                self.mean_embedding[s] = mean
+                self.data_dict[s] = list_emb
+                self.name_dict[label_id] = s
+        # print(self.data_dict)
 
     def get_distance_from_user(self, emb, identity_to_check):
         max_dist = -1
@@ -51,14 +57,19 @@ class EmbeddingsHandler:
             thr = self.threshold
         list_distance = []
         label_list = []
-        print("Data dictionary size {}".format(len(self.data_dict)))
+        # print("Data dictionary size {}".format(len(self.data_dict)))
         for speaker_label, list_emb in self.data_dict.items():
             if speaker_label not in self.excluded_entities:
                 for person_emb in list_emb:
+                   # print(person_emb)
+                    # print(emb)
                     # dist = self.similarity_func(torch.from_numpy(person_emb), torch.from_numpy(np.ndarray(np.int(emb)))).numpy()
-                    dist = self.similarity_func(torch.from_numpy(person_emb), emb).numpy()
+                    dist = self.similarity_func(torch.from_numpy(person_emb), torch.from_numpy(emb)).numpy()
+                    # dist = self.similarity_func(torch.from_numpy(person_emb), emb).numpy()
+                    # print(dist)
+                    # print(speaker_label)
                     if dist > thr:
-                        list_distance.append(dist[0])
+                        list_distance.append(dist)
                         label_list.append(speaker_label)
 
         return list_distance, label_list
@@ -66,7 +77,7 @@ class EmbeddingsHandler:
     def get_speaker_db_scan(self, emb, thr=None):
         distances, labels = self.get_max_distances(emb, thr)
         if len(distances) == 0:
-            return -1, -1
+            return "Silence_audio"
 
         n = len(distances) if len(distances) < self.n_neighbors else self.n_neighbors
         try:
@@ -89,7 +100,8 @@ class EmbeddingsHandler:
                     final_label = key
 
             self.excluded_entities.append(final_label)
-            return max_dist / max_count, final_label
+            # return max_dist / max_count, final_label
+            return final_label
 
         except Exception as e:
             return -1, -1

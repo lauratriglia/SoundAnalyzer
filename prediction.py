@@ -1,42 +1,44 @@
 import os
 import numpy as np
-import torch
-import csv
-from pydub import AudioSegment
-from pydub.utils import make_chunks
-import torchaudio
-from speechbrain.pretrained import EncoderClassifier
-from speaker_embeddings import EmbeddingsHandler
-from embeddings_creation import EmbeddingsCreation
 
 
-def predict_speaker(embeddings):
+def predict_speaker(embeddings, ls):
+    '''
+    :param embeddings: .npy file, where the embeddings extracted are stored
+    :param ls: to use EmbeddingsHandler class and correctly use get_speaker_db_scan
+    :return: speaker_name that is the predicted name of the speaker
 
-    ls = EmbeddingsHandler(os.path.join(os.getcwd(), 'DB_Final'), n_neighbors=4)
-    score, speaker_name = ls.get_speaker_db_scan(embeddings)
+    This function takes the embeddings previously created with emb_creation1 and uses a KNN model to return the
+    predicted speaker. The KNN model is in speaker_embeddings.py.
+    '''
+    # ls = EmbeddingsHandler(os.path.join(os.getcwd(), 'DB_s'), n_neighbors=4)
+    speaker_name = ls.get_speaker_db_scan(embeddings)
 
-    if score == -1:
-        speaker_name = "unknown"
+    # if score == -1:
+    #     speaker_name = "unknown"
 
     ls.excluded_entities = []
-    print("Predicted speaker name is {} with score {}".format(speaker_name, score))
+    print("Predicted speaker name is {}".format(speaker_name))
 
-    return speaker_name, float(score)
+    return speaker_name
+def main():
 
+    main_dir = 'DB_Final'
+    all_file_names = os.listdir(main_dir)
+    for subdir in all_file_names:
+        if os.path.isdir(main_dir + '/' + subdir):
+            dir_names = os.listdir(main_dir + '/' + subdir)
+            # print(subdir)
+        for subdir1 in dir_names:
+            if os.path.isdir(main_dir+'/'+subdir+'/'+subdir1):
+                files = os.listdir(main_dir+'/'+subdir+'/'+subdir1)
+                embs = np.load(main_dir+'/'+subdir+'/'+subdir1+'/'+'chunk.npy').squeeze()
+                print(f"EMB outside: {embs}")
+                print(subdir1)
+                # predict_speaker(np.load(main_dir+'/'+subdir+'/'+subdir1+'/'+'chunk.npy'))
+                # print(embs)
+                for emb in embs:
+                    predict_speaker(emb)
 
-main_dir = 'DB_Final'
-all_file_names = os.listdir(main_dir)
-print(all_file_names)
-
-for subdir in all_file_names:
-    if os.path.isdir(main_dir + '/' + subdir):
-        dir_names = os.listdir(main_dir + '/' + subdir)
-    for subdir1 in dir_names:
-        if os.path.isdir(main_dir+'/'+subdir+'/'+subdir1):
-            files = os.listdir(main_dir+'/'+subdir+'/'+subdir1)
-            for file in files:
-                if '.npy' in file:
-                    # speaker_emb = lib.make_chunk(main_dir+'/'+subdir+'/'+subdir1+'/'+file)
-                    lib = EmbeddingsCreation()
-                    speaker_name, score = predict_speaker(lib.embeddings)
-
+if __name__ == '__main__':
+    main()
